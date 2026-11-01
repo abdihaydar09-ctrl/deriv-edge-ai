@@ -77,8 +77,11 @@ button:disabled{opacity:.5}
 </div>
 
 <script>
+
+<script>
 let socket;
 let recentTicks = [];
+let digitHistory = [];
 
 function connectMarket() {
   if (socket) socket.close();
@@ -109,10 +112,9 @@ function connectMarket() {
     }
 
     if (data.msg_type === "tick" && data.tick) {
-      const quote = data.tick.quote;
-      const price = Number(quote);
+      const price = Number(data.tick.quote);
       const digits = price.toFixed(data.tick.pip_size);
-      const lastDigit = digits.replace(".", "").slice(-1);
+      const lastDigit = Number(digits.replace(".", "").slice(-1));
 
       document.getElementById("price").textContent = digits;
       document.getElementById("digit").textContent = lastDigit;
@@ -120,8 +122,13 @@ function connectMarket() {
       recentTicks.unshift(lastDigit);
       recentTicks = recentTicks.slice(0, 10);
 
+      digitHistory.push(lastDigit);
+      if (digitHistory.length > 100) digitHistory.shift();
+
       document.getElementById("ticks").textContent =
         recentTicks.join("  •  ");
+
+      updateScanner();
     }
   };
 
@@ -136,7 +143,45 @@ function connectMarket() {
   };
 }
 
+function updateScanner() {
+  const total = digitHistory.length;
+  const output = document.getElementById("analysis");
+
+  if (total < 100) {
+    output.textContent =
+      "Collecting data: " + total + "/100 ticks. Scanner not ready.";
+    return;
+  }
+
+  let counts = Array(10).fill(0);
+
+  digitHistory.forEach(digit => counts[digit]++);
+
+  const ranked = counts
+    .map((count, digit) => ({
+      digit,
+      count,
+      percent: (count / total * 100).toFixed(1)
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const even = digitHistory.filter(d => d % 2 === 0).length;
+  const odd = total - even;
+
+  output.textContent =
+    "100-TICK STATISTICS\n" +
+    "Most frequent digit: " + ranked[0].digit +
+    " (" + ranked[0].percent + "%)\n" +
+    "Even digits: " + (even / total * 100).toFixed(1) + "%\n" +
+    "Odd digits: " + (odd / total * 100).toFixed(1) + "%\n" +
+    "Digit frequencies: " +
+    counts.map((count, digit) => digit + ":" + count).join(" | ") +
+    "\nStatistics only — no prediction or trade signal.";
+}
+
 connectMarket();
+</script>
+
 </script>
 
 </body>
