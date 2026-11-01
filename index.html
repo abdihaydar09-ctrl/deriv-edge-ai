@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deriv Edge AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090d16;color:#edf2ff;font-family:Arial,sans-serif;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+h1{font-size:24px;margin:8px 0}
+.muted{color:#8c9ab2;font-size:13px}
+.card{background:#141d2c;border:1px solid #29364b;border-radius:14px;padding:18px;margin-top:16px}
+.price{font-size:32px;font-weight:bold;margin:12px 0}
+.green{color:#39d98a}
+button,select{background:#202e43;color:white;border:1px solid #43536c;border-radius:9px;padding:12px;font-size:14px}
+button{cursor:pointer}
+button:disabled{opacity:.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat{font-size:22px;font-weight:bold;margin-top:8px}
+.warning{color:#ffcb70;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>⚡ DERIV EDGE AI</h1>
+    <div class="muted">Volatility Trading Assistant</div>
+  </div>
+  <span id="connection" class="warning">Connecting...</span>
+</header>
+
+<div class="card">
+  <div class="muted">MARKET</div>
+  <h2>Volatility 100 Index</h2>
+  <div id="price" class="price">Waiting for data...</div>
+  <div class="muted">Live market price</div>
+  <p>Last digit: <strong id="digit">--</strong></p>
+  <button onclick="connectMarket()">Reconnect market</button>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="muted">ACCOUNT MODE</div>
+    <div class="stat">DEMO</div>
+    <p class="muted">Real trading not connected</p>
+  </div>
+  <div class="card">
+    <div class="muted">PROPOSED STAKE</div>
+    <div class="stat">$0.35</div>
+    <p class="muted">Not yet submitted</p>
+  </div>
+</div>
+
+<div class="card">
+  <h3>AI Contract Scanner</h3>
+  <p class="muted">Contracts to evaluate</p>
+  <p>Matches • Differs • Even • Odd • Over • Under</p>
+  <div id="analysis" class="warning">
+    Collecting live market data. No trading signal generated yet.
+  </div>
+  <p class="muted">A signal will require testing and statistical validation.</p>
+</div>
+
+<div class="card">
+  <h3>Trading Safety</h3>
+  <p>Automatic trading: <strong>OFF</strong></p>
+  <p>Real account: <strong>DISCONNECTED</strong></p>
+  <p class="warning">No contracts will be purchased by this first version.</p>
+</div>
+
+<div class="card">
+  <h3>Recent Market Ticks</h3>
+  <div id="ticks" class="muted">Waiting for ticks...</div>
+</div>
+
+<script>
+let socket;
+let recentTicks = [];
+
+function connectMarket() {
+  if (socket) socket.close();
+
+  document.getElementById("connection").textContent = "Connecting...";
+
+  socket = new WebSocket(
+    "wss://api.derivws.com/trading/v1/options/ws/public"
+  );
+
+  socket.onopen = () => {
+    document.getElementById("connection").textContent = "● LIVE";
+    document.getElementById("connection").className = "green";
+
+    socket.send(JSON.stringify({
+      ticks: "1HZ100V",
+      subscribe: 1
+    }));
+  };
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.error) {
+      document.getElementById("connection").textContent =
+        "Market error: " + data.error.message;
+      return;
+    }
+
+    if (data.msg_type === "tick" && data.tick) {
+      const quote = data.tick.quote;
+      const price = Number(quote);
+      const digits = price.toFixed(data.tick.pip_size);
+      const lastDigit = digits.replace(".", "").slice(-1);
+
+      document.getElementById("price").textContent = digits;
+      document.getElementById("digit").textContent = lastDigit;
+
+      recentTicks.unshift(lastDigit);
+      recentTicks = recentTicks.slice(0, 10);
+
+      document.getElementById("ticks").textContent =
+        recentTicks.join("  •  ");
+    }
+  };
+
+  socket.onerror = () => {
+    document.getElementById("connection").textContent =
+      "Connection error";
+  };
+
+  socket.onclose = () => {
+    document.getElementById("connection").textContent =
+      "Disconnected";
+  };
+}
+
+connectMarket();
+</script>
+
+</body>
+</html>
