@@ -94,7 +94,7 @@ function connectMarket() {
     document.getElementById("connection").className = "green";
 
     socket.send(JSON.stringify({
-      ticks: "1HZ100V",
+      ticks: "R_100",
       subscribe: 1
     }));
   };
