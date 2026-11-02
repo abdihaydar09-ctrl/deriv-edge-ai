@@ -121,6 +121,42 @@ label{display:block;margin:12px 0 6px}
 </div>
 
 <div class="card">
+  
+<div class="card">
+  <h3>🧠 Strategy Analyzer</h3>
+  <p class="muted">Historical contract performance</p>
+
+  <label for="strategyContract">Contract</label>
+  <select id="strategyContract">
+    <option value="matches">Matches</option>
+    <option value="differs">Differs</option>
+    <option value="even">Even</option>
+    <option value="odd">Odd</option>
+    <option value="over">Over</option>
+    <option value="under">Under</option>
+  </select>
+
+  <label for="strategyDigit">Barrier digit</label>
+  <select id="strategyDigit">
+    <option value="0">0</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+    <option value="8">8</option>
+    <option value="9">9</option>
+  </select>
+
+  <button onclick="analyzeStrategy()">Analyze Strategy</button>
+
+  <p id="strategyResult" class="warning">
+    Collecting historical market ticks...
+  </p>
+</div>
+
   <h3>Trading Safety</h3>
   <p>Automatic trading: <strong>OFF</strong></p>
   <p>Real account: <strong>DISCONNECTED</strong></p>
