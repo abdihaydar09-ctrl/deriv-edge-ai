@@ -301,6 +301,7 @@ function updateScanner() {
     "Digit frequencies: " +
     counts.map((count, digit) => digit + ":" + count).join(" | ") +
     "\nHistorical statistics only — not a prediction.";
+  analyzeStrategy();
 }
 
 function startTest() {
