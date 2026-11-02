@@ -358,6 +358,50 @@ function resetTests() {
   updateTestStats();
 }
 
+function analyzeStrategy() {
+  const type = document.getElementById("strategyContract").value;
+  const barrier = Number(document.getElementById("strategyDigit").value);
+  const output = document.getElementById("strategyResult");
+
+  const data = analyzerHistory;
+
+  if (data.length < 500) {
+    output.textContent =
+      "Insufficient data: " + data.length +
+      "/500 ticks collected. Keep the market connected.";
+    return;
+  }
+
+  let wins = 0;
+  let baseline = 0.5;
+
+  if (type === "matches") baseline = 0.10;
+  if (type === "differs") baseline = 0.90;
+  if (type === "even" || type === "odd") baseline = 0.50;
+  if (type === "over") baseline = (9 - barrier) / 10;
+  if (type === "under") baseline = barrier / 10;
+
+  data.forEach(digit => {
+    if (type === "matches" && digit === barrier) wins++;
+    if (type === "differs" && digit !== barrier) wins++;
+    if (type === "even" && digit % 2 === 0) wins++;
+    if (type === "odd" && digit % 2 !== 0) wins++;
+    if (type === "over" && digit > barrier) wins++;
+    if (type === "under" && digit < barrier) wins++;
+  });
+
+  const observed = wins / data.length;
+  const difference = (observed - baseline) * 100;
+
+  output.textContent =
+    "Historical sample: " + data.length + " ticks\n" +
+    "Contract: " + type.toUpperCase() + "\n" +
+    "Observed win rate: " + (observed * 100).toFixed(2) + "%\n" +
+    "Theoretical baseline: " + (baseline * 100).toFixed(2) + "%\n" +
+    "Difference: " + difference.toFixed(2) + " percentage points\n\n" +
+    "Historical comparison only. No reliable prediction or trading edge established.";
+}
+
 connectMarket();
 </script>
 
