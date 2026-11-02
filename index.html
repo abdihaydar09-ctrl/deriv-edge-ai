@@ -200,6 +200,11 @@ function connectMarket() {
       recentTicks = recentTicks.slice(0, 10);
 
       digitHistory.push(lastDigit);
+      analyzerHistory.push(lastDigit);
+
+if (analyzerHistory.length > 1000) {
+  analyzerHistory.shift();
+}
       if (digitHistory.length > 100) digitHistory.shift();
 
       document.getElementById("ticks").textContent =
